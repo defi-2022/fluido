@@ -28,7 +28,7 @@ export const useWallet = (): useWalletType => {
         method: "wallet_addEthereumChain",
         params: [
           {
-            ...networks[AvailableNetworks.LOCAL],
+            ...networks[AvailableNetworks.THETA_TESTNET],
           },
         ],
       });
