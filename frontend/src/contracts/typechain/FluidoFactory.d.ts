@@ -27,8 +27,10 @@ interface FluidoFactoryInterface extends ethers.utils.Interface {
     "getAllTokens()": FunctionFragment;
     "getTokensLength()": FunctionFragment;
     "getUserTokens()": FunctionFragment;
+    "getUserTokensLength()": FunctionFragment;
     "mint(address)": FunctionFragment;
     "owner()": FunctionFragment;
+    "tokenDetails(address)": FunctionFragment;
     "withdraw(address)": FunctionFragment;
   };
 
@@ -52,8 +54,16 @@ interface FluidoFactoryInterface extends ethers.utils.Interface {
     functionFragment: "getUserTokens",
     values?: undefined
   ): string;
+  encodeFunctionData(
+    functionFragment: "getUserTokensLength",
+    values?: undefined
+  ): string;
   encodeFunctionData(functionFragment: "mint", values: [string]): string;
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "tokenDetails",
+    values: [string]
+  ): string;
   encodeFunctionData(functionFragment: "withdraw", values: [string]): string;
 
   decodeFunctionResult(
@@ -76,8 +86,16 @@ interface FluidoFactoryInterface extends ethers.utils.Interface {
     functionFragment: "getUserTokens",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(
+    functionFragment: "getUserTokensLength",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "mint", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "tokenDetails",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "withdraw", data: BytesLike): Result;
 
   events: {};
@@ -138,16 +156,7 @@ export class FluidoFactory extends BaseContract {
     deployedTokens(
       arg0: BigNumberish,
       overrides?: CallOverrides
-    ): Promise<
-      [string, string, string, string, BigNumber, BigNumber] & {
-        tokenAddress: string;
-        name: string;
-        symbol: string;
-        description: string;
-        lockedLiquidity: BigNumber;
-        rewardPercentage: BigNumber;
-      }
-    >;
+    ): Promise<[string]>;
 
     getAllTokens(
       overrides?: CallOverrides
@@ -166,7 +175,22 @@ export class FluidoFactory extends BaseContract {
 
     getTokensLength(overrides?: CallOverrides): Promise<[BigNumber]>;
 
-    getUserTokens(overrides?: CallOverrides): Promise<[string[]]>;
+    getUserTokens(
+      overrides?: CallOverrides
+    ): Promise<
+      [
+        ([string, string, string, string, BigNumber, BigNumber] & {
+          tokenAddress: string;
+          name: string;
+          symbol: string;
+          description: string;
+          lockedLiquidity: BigNumber;
+          rewardPercentage: BigNumber;
+        })[]
+      ]
+    >;
+
+    getUserTokensLength(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     mint(
       tokenAddress: string,
@@ -174,6 +198,20 @@ export class FluidoFactory extends BaseContract {
     ): Promise<ContractTransaction>;
 
     owner(overrides?: CallOverrides): Promise<[string]>;
+
+    tokenDetails(
+      arg0: string,
+      overrides?: CallOverrides
+    ): Promise<
+      [string, string, string, string, BigNumber, BigNumber] & {
+        tokenAddress: string;
+        name: string;
+        symbol: string;
+        description: string;
+        lockedLiquidity: BigNumber;
+        rewardPercentage: BigNumber;
+      }
+    >;
 
     withdraw(
       tokenAddress: string,
@@ -192,16 +230,7 @@ export class FluidoFactory extends BaseContract {
   deployedTokens(
     arg0: BigNumberish,
     overrides?: CallOverrides
-  ): Promise<
-    [string, string, string, string, BigNumber, BigNumber] & {
-      tokenAddress: string;
-      name: string;
-      symbol: string;
-      description: string;
-      lockedLiquidity: BigNumber;
-      rewardPercentage: BigNumber;
-    }
-  >;
+  ): Promise<string>;
 
   getAllTokens(
     overrides?: CallOverrides
@@ -218,7 +247,20 @@ export class FluidoFactory extends BaseContract {
 
   getTokensLength(overrides?: CallOverrides): Promise<BigNumber>;
 
-  getUserTokens(overrides?: CallOverrides): Promise<string[]>;
+  getUserTokens(
+    overrides?: CallOverrides
+  ): Promise<
+    ([string, string, string, string, BigNumber, BigNumber] & {
+      tokenAddress: string;
+      name: string;
+      symbol: string;
+      description: string;
+      lockedLiquidity: BigNumber;
+      rewardPercentage: BigNumber;
+    })[]
+  >;
+
+  getUserTokensLength(overrides?: CallOverrides): Promise<BigNumber>;
 
   mint(
     tokenAddress: string,
@@ -226,6 +268,20 @@ export class FluidoFactory extends BaseContract {
   ): Promise<ContractTransaction>;
 
   owner(overrides?: CallOverrides): Promise<string>;
+
+  tokenDetails(
+    arg0: string,
+    overrides?: CallOverrides
+  ): Promise<
+    [string, string, string, string, BigNumber, BigNumber] & {
+      tokenAddress: string;
+      name: string;
+      symbol: string;
+      description: string;
+      lockedLiquidity: BigNumber;
+      rewardPercentage: BigNumber;
+    }
+  >;
 
   withdraw(
     tokenAddress: string,
@@ -244,16 +300,7 @@ export class FluidoFactory extends BaseContract {
     deployedTokens(
       arg0: BigNumberish,
       overrides?: CallOverrides
-    ): Promise<
-      [string, string, string, string, BigNumber, BigNumber] & {
-        tokenAddress: string;
-        name: string;
-        symbol: string;
-        description: string;
-        lockedLiquidity: BigNumber;
-        rewardPercentage: BigNumber;
-      }
-    >;
+    ): Promise<string>;
 
     getAllTokens(
       overrides?: CallOverrides
@@ -270,11 +317,38 @@ export class FluidoFactory extends BaseContract {
 
     getTokensLength(overrides?: CallOverrides): Promise<BigNumber>;
 
-    getUserTokens(overrides?: CallOverrides): Promise<string[]>;
+    getUserTokens(
+      overrides?: CallOverrides
+    ): Promise<
+      ([string, string, string, string, BigNumber, BigNumber] & {
+        tokenAddress: string;
+        name: string;
+        symbol: string;
+        description: string;
+        lockedLiquidity: BigNumber;
+        rewardPercentage: BigNumber;
+      })[]
+    >;
+
+    getUserTokensLength(overrides?: CallOverrides): Promise<BigNumber>;
 
     mint(tokenAddress: string, overrides?: CallOverrides): Promise<void>;
 
     owner(overrides?: CallOverrides): Promise<string>;
+
+    tokenDetails(
+      arg0: string,
+      overrides?: CallOverrides
+    ): Promise<
+      [string, string, string, string, BigNumber, BigNumber] & {
+        tokenAddress: string;
+        name: string;
+        symbol: string;
+        description: string;
+        lockedLiquidity: BigNumber;
+        rewardPercentage: BigNumber;
+      }
+    >;
 
     withdraw(tokenAddress: string, overrides?: CallOverrides): Promise<void>;
   };
@@ -301,12 +375,16 @@ export class FluidoFactory extends BaseContract {
 
     getUserTokens(overrides?: CallOverrides): Promise<BigNumber>;
 
+    getUserTokensLength(overrides?: CallOverrides): Promise<BigNumber>;
+
     mint(
       tokenAddress: string,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     owner(overrides?: CallOverrides): Promise<BigNumber>;
+
+    tokenDetails(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
 
     withdraw(
       tokenAddress: string,
@@ -334,12 +412,21 @@ export class FluidoFactory extends BaseContract {
 
     getUserTokens(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
+    getUserTokensLength(
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     mint(
       tokenAddress: string,
       overrides?: PayableOverrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    tokenDetails(
+      arg0: string,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
 
     withdraw(
       tokenAddress: string,

@@ -31,13 +31,13 @@ contract FluidoToken is IFluidoToken, ERC20 {
     function mint() external payable override {
         require(msg.value > 0, "value is zero");
 
-        deposits[msg.sender] = Deposit({
+        deposits[tx.origin] = Deposit({
             timestamp: block.timestamp,
             amount: msg.value
         });
 
         totalLocked += msg.value;
-        _mint(msg.sender, msg.value);
+        _mint(tx.origin, msg.value);
     }
 
     function withdraw() external override {

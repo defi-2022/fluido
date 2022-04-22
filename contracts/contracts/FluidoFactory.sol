@@ -7,7 +7,9 @@ import "./interfaces/IFluidoToken.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract FluidoFactory is IFluidoFactory {
-    TokenDetails[] public deployedTokens;
+    address[] public deployedTokens;
+    mapping(address => TokenDetails) public tokenDetails;
+
     address public owner;
 
     mapping(address => address[]) userFunds; // track funds in which user has invested
@@ -23,29 +25,20 @@ contract FluidoFactory is IFluidoFactory {
         );
 
         IFluidoToken(tokenAddress).mint{value: msg.value}();
-
         userFunds[msg.sender].push(tokenAddress);
     }
 
     function withdraw(address tokenAddress) external override {
-        require(
-            IERC20(tokenAddress).balanceOf(msg.sender) > 0,
-            "user has no funds"
-        );
-
-        IFluidoToken(tokenAddress).withdraw();
-
         uint256 length = userFunds[msg.sender].length;
         uint256 i;
 
         for (i = 0; i < length; i++) {
             if (userFunds[msg.sender][i] == tokenAddress) {
+                userFunds[msg.sender][i] = userFunds[msg.sender][length - 1];
+                userFunds[msg.sender].pop();
                 break;
             }
         }
-
-        userFunds[msg.sender][i] = userFunds[msg.sender][length];
-        userFunds[msg.sender].pop();
     }
 
     function getAllTokens()
@@ -54,15 +47,33 @@ contract FluidoFactory is IFluidoFactory {
         override
         returns (TokenDetails[] memory)
     {
-        return deployedTokens;
+        uint256 length = deployedTokens.length;
+        TokenDetails[] memory collectedTks = new TokenDetails[](length);
+
+        for (uint256 i = 0; i < length; i++) {
+            collectedTks[i] = tokenDetails[deployedTokens[i]];
+        }
+
+        return collectedTks;
+    }
+
+    function getUserTokensLength() external view returns (uint256) {
+        return userFunds[msg.sender].length;
+    }
+
+    function getUserTokens() external view returns (TokenDetails[] memory) {
+        uint256 length = userFunds[msg.sender].length;
+        TokenDetails[] memory collectedTks = new TokenDetails[](length);
+
+        for (uint256 i = 0; i < length; i++) {
+            collectedTks[i] = tokenDetails[userFunds[msg.sender][i]];
+        }
+
+        return collectedTks;
     }
 
     function getTokensLength() external view override returns (uint256) {
         return deployedTokens.length;
-    }
-
-    function getUserTokens() external view returns (address[] memory) {
-        return userFunds[msg.sender];
     }
 
     function createNewToken(
@@ -78,16 +89,16 @@ contract FluidoFactory is IFluidoFactory {
             _rewardPercentage,
             address(this)
         );
-        deployedTokens.push(
-            TokenDetails({
-                tokenAddress: address(newTokenAddress),
-                name: _name,
-                symbol: _symbol,
-                description: _description,
-                lockedLiquidity: 0,
-                rewardPercentage: _rewardPercentage
-            })
-        );
+
+        deployedTokens.push(address(newTokenAddress));
+        tokenDetails[address(newTokenAddress)] = TokenDetails({
+            tokenAddress: address(newTokenAddress),
+            name: _name,
+            symbol: _symbol,
+            description: _description,
+            lockedLiquidity: 0,
+            rewardPercentage: _rewardPercentage
+        });
 
         return address(newTokenAddress);
     }

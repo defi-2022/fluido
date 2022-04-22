@@ -42,15 +42,16 @@ export const Mainpage: React.FC<MainpageProps> = () => {
           Try for free
         </Button>
         <Box h={"20"} />
-        <Center>
+        {/* <Center>
           <Flex direction={"column"}>
             <Text mb={"-8"}>Next season</Text>
             <Countdown
+            
               className="text-[7rem] font-thin"
               date={Date.now() + 10000000}
             />
           </Flex>
-        </Center>
+        </Center> */}
       </Box>
     </Container>
   );

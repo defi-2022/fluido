@@ -26,7 +26,9 @@ interface useTokensStore {
   focusedTokenLiquidity: LiquidityDetails | undefined;
   focusedTokenContract: FluidoToken | undefined;
   tokens: TokenDetails[] | undefined;
+  userTokens: TokenDetails[] | undefined;
   fetchTokens: () => void;
+  fetchUserTokens: () => Promise<void>;
   fetchLiquidityDetilas: () => Promise<void>;
   focusToken: (token: TokenDetails) => void;
   deFocusToken: () => void;
@@ -37,6 +39,7 @@ export const useTokens = create<useTokensStore>((set, get) => ({
   focusedTokenContract: undefined,
   focusedTokenLiquidity: undefined,
   tokens: [],
+  userTokens: [],
   fetchLiquidityDetilas: async () => {
     try {
       const focusedTokenContract = get().focusedTokenContract;
@@ -92,6 +95,7 @@ export const useTokens = create<useTokensStore>((set, get) => ({
       }
 
       const listings = await factory.getAllTokens();
+      console.log(listings);
 
       if (!listings) {
         throw new Error("Failed to fetch listings");
@@ -100,13 +104,50 @@ export const useTokens = create<useTokensStore>((set, get) => ({
       const formatedListing = listings.map((element) => ({
         address: element.tokenAddress,
         description: element.description,
-        interest: 0,
+        interest: element.rewardPercentage
+          .div(BigNumber.from("100"))
+          .toNumber(),
         liquidity: element.lockedLiquidity,
         name: element.name,
         symbol: element.symbol,
       }));
 
       set({ tokens: formatedListing });
+    } catch (error: any) {
+      if (error instanceof Error) {
+        toast.error(error.message);
+        return console.log(error.message);
+      }
+      console.log(error);
+    }
+  },
+  fetchUserTokens: async () => {
+    try {
+      const factory = useContracts.getState().factory;
+
+      if (!factory) {
+        throw new Error("Factory initialization failed");
+      }
+
+      const listings = await factory.getUserTokens();
+      console.log(listings.toString());
+
+      if (!listings) {
+        throw new Error("Failed to fetch listings");
+      }
+
+      const formatedListing = listings.map((element: any) => ({
+        address: element.tokenAddress,
+        description: element.description,
+        interest: element.rewardPercentage
+          .div(BigNumber.from("100"))
+          .toNumber(),
+        liquidity: element.lockedLiquidity,
+        name: element.name,
+        symbol: element.symbol,
+      }));
+
+      set({ userTokens: formatedListing });
     } catch (error: any) {
       if (error instanceof Error) {
         toast.error(error.message);

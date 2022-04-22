@@ -28,31 +28,41 @@ export const Create: React.FC<CreateProps> = () => {
   const [description, setDescription] = useState<string>("");
   const [symbol, setSymbol] = useState<string>("");
   const [interest, setInterest] = useState<string>("");
+  const [isCreating, setIsCreating] = useState<boolean>(false);
 
   const factory = useContracts((state) => state.factory);
 
   const handleCreateToken = async () => {
     try {
       if (!factory) {
-        return toast.error("Failed to initalize factory contract");
+        throw new Error("Failed to initalize factory contract");
       }
+      setIsCreating(true);
 
       const formatedInterest = BigNumber.from(interest.split("%")[0]);
+      console.log(name);
+      console.log(symbol);
+      console.log(formatedInterest.mul(BigNumber.from("100")).toString());
 
       const result = await factory.createNewToken(
         name,
         symbol,
         description,
-        formatedInterest
+        formatedInterest.mul(BigNumber.from("100")).toString()
       );
 
       console.log(result);
+      await result.wait();
+      toast.success("Successfully created a new token");
+      setIsCreating(false);
     } catch (error: any) {
+      if (error instanceof Error) {
+        toast.error(error.message);
+      }
+
       console.log(error);
+      setIsCreating(false);
     }
-    console.log(name);
-    console.log(symbol);
-    console.log(interest);
   };
 
   return (
@@ -120,7 +130,11 @@ export const Create: React.FC<CreateProps> = () => {
               <option>5%</option>
               <option>10%</option>
             </Select>
-            <Button w={"full"} onClick={handleCreateToken}>
+            <Button
+              w={"full"}
+              onClick={handleCreateToken}
+              isLoading={isCreating}
+            >
               Create
             </Button>
           </GridItem>

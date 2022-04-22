@@ -1,6 +1,4 @@
 import {
-  Accordion,
-  AccordionItem,
   Box,
   Button,
   Container,
@@ -28,7 +26,6 @@ import {
 } from "@chakra-ui/react";
 import React, { useEffect, useState } from "react";
 import { TokenDetails, useTokens } from "../../stores/useTokens";
-import faker from "@faker-js/faker";
 import { BigNumber, ethers } from "ethers";
 import { truncateAddress } from "../../helpers/truncateAddress";
 import { useNavigate } from "react-router-dom";
@@ -40,6 +37,7 @@ import Modal from "react-modal";
 import { mintModalStyle } from "../../modals/mintModalStyle";
 import { AiOutlineInfoCircle } from "react-icons/ai";
 import { toast } from "react-toastify";
+import { useContracts } from "../../stores/useContracts";
 
 interface SwapProps {}
 
@@ -66,6 +64,8 @@ export const Swap: React.FC<SwapProps> = () => {
 
   const [mintValue, setMintValue] = useState<string>("");
   const [isMintLoading, setMintLoading] = useState<boolean>(false);
+
+  const factory = useContracts((state) => state.factory);
 
   const fetchLiquidityDetails = useTokens(
     (state) => state.fetchLiquidityDetilas
@@ -95,8 +95,12 @@ export const Swap: React.FC<SwapProps> = () => {
   const handleMint = async () => {
     setMintLoading(true);
     try {
-      if (!focusedTokenContract) {
-        throw new Error("Token contract failed to initialize");
+      if (!factory) {
+        throw new Error("Factory failed to initialize");
+      }
+
+      if (!focusedToken) {
+        throw new Error("Focused token failed to initialize");
       }
 
       const formattedValue = parseFloat(mintValue.replace(",", "."));
@@ -104,12 +108,15 @@ export const Swap: React.FC<SwapProps> = () => {
         throw new Error("Failed to validate provided data");
       }
 
-      const result = await focusedTokenContract.mint({
+      const result = await factory.mint(focusedToken.address, {
         value: ethers.utils.parseEther(formattedValue.toString()),
       });
 
       console.log(result);
+      await result.wait();
+      setIsMintModalOpen(false);
       setMintLoading(false);
+      toast.success("Successfully minted tokens");
     } catch (error: any) {
       if (error instanceof Error) {
         toast.error(error.message);
@@ -121,13 +128,21 @@ export const Swap: React.FC<SwapProps> = () => {
   };
   const handleWithdrawToken = async () => {
     try {
+      if (!factory) {
+        throw new Error("Factory failed to initialize");
+      }
+      if (!focusedToken) {
+        throw new Error("Focused token failed to initialize");
+      }
       if (!focusedTokenContract) {
-        throw new Error("Token contract failed to initialize");
+        throw new Error("Focused token failed to initialize");
       }
 
       const result = await focusedTokenContract.withdraw();
+      const result2 = await factory.withdraw(focusedToken.address);
 
       console.log(result);
+      console.log(result2);
     } catch (error: any) {
       if (error instanceof Error) {
         toast.error(error.message);
